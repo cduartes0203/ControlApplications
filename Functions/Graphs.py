@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import matplotlib as mpl
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
@@ -90,14 +92,16 @@ def PlotSeries(xSeries=None,ySeries=None,mode='plt',w=5,h=3,title='r'):
         PlotSeriesPLY(xSeries=xSeries,ySeries=ySeries,w=w*100,h=h*100,title=title)
      
 
-def PlotTwoScales(y1,y2,x1=None,x2=None,w=5,h=3,y1_name=None,y2_name=None):
+def PlotTwoScales(y1,y2,x1=None,x2=None,w=5,h=3,y1_name=None,y2_name=None, x_name=None, out=None, title=None):
     if y1_name is None: y1_name = 'y1'
     if y2_name is None: y2_name = 'y2'
+    if x_name is None: x_name = 'Cycle'
     if x1 is None: x1 = np.arange(len(y1))
     if x2 is None: x2 = np.arange(len(y2))
     fig, ax1 = plt.subplots(figsize=(w, h))
 
-    ax1.set_xlabel('x')
+    ax1.set_title(title)
+    ax1.set_xlabel(x_name)
     ax1.set_ylabel(y1_name, color='blue')
     ax1.plot(x1, y1, color='blue')
     ax1.tick_params(axis='y', labelcolor='blue')
@@ -108,7 +112,9 @@ def PlotTwoScales(y1,y2,x1=None,x2=None,w=5,h=3,y1_name=None,y2_name=None):
     ax2.plot(x2, y2, color='red')
     ax2.tick_params(axis='y', labelcolor='red')
 
-    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    fig.tight_layout()
+    if out != None:
+        plt.savefig(out, dpi=500)  # otherwise the right y-label is slightly clipped
     plt.show()
 
 def PlotTwoScalesPLY(y1, y2,x1=None, x2=None, w=500, h=300, y1_name='y1', y2_name='y2',x_name='Cycle'):
@@ -809,3 +815,44 @@ def plot_multiple_features(dfs,out, cols_qtd, brngs, labels, show=True, w=12, h=
         plt.savefig(out+'Features.eps', dpi=500)
         plt.savefig(out+'Features.png', dpi=500)
         plt.show()
+
+def PlotDataframes(dataframes, cols_qtd=4,w=12,h=8):
+
+    cmap = mpl.colormaps.get_cmap('tab20').resampled(len(dataframes))
+    colors = (np.array([cmap(i) for i in range(1+len(dataframes))]))
+
+    nc = cols_qtd  # Número de colunas
+    nr = -(-dataframes[0].shape[1] // nc)  # Cálculo do número de linhas (ceil)
+
+    # Criar figura e subplots
+    fig, axes = plt.subplots(nrows=nr, ncols=nc, figsize=(w, h))
+    fig.subplots_adjust(left=0.04, right=0.98, top=0.88, bottom=0.12,
+                    wspace=0.001, hspace=0.001)
+    fig.add_gridspec(wspace=0.25, hspace=0.15)
+    
+    # Garantir que `axes` seja sempre uma matriz 2D
+    if nr == 1 and nc == 1:
+        axes = np.array([[axes]])  # Se for um único subplot, ajusta para matriz 2D
+    elif nr == 1 or nc == 1:
+        axes = np.reshape(axes, (-1, nc))  # Se for linha ou coluna única, ajusta matriz corretamente
+    
+    axes = axes.flatten() 
+    # Plot each column in a subplot
+    for i, col in enumerate(dataframes[0].columns):
+        ax = axes[i]
+        for j,df in enumerate(dataframes):
+            ax.plot(df.index, df[col], label=f'{j+1}', color=colors[j])
+        #ax.set_title(col, fontsize=10)
+        ax.legend(fontsize=8,ncol=len(dataframes))
+        ax.grid(True)
+        if i< nr*nc-cols_qtd: 
+            ax.set_xlabel('')
+            ax.tick_params(labelleft=False,labelsize=0.1,axis='x',colors='1',)
+
+    # Hide any unused subplots if the number of columns is not a multiple of 4
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+
+    # Adjust layout
+    plt.tight_layout(rect=[0, 0, 1, 0.95])  # Leave space for suptitle
+    plt.show()
