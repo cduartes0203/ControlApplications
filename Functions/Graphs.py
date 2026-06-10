@@ -37,10 +37,14 @@ def PlotSingle(x,y,mode='plt',w=5,h=3,title='r'):
         PlotPLY(x,y,w,h,title)
 
 def PlotSeriesPLY(xSeries=None,ySeries=None, names=None, title='Séries Temporais',
-                  markers=None, w=600, h=400):
+                  markers=None, xLabel=None, yLabel=None, w=600, h=400):
     
     if xSeries==None: 
         xSeries = [[i for i in range(len(ySeries[j]))] for j in range(len(ySeries))]
+    
+    if xLabel is None: xLabel = 'X'
+    if yLabel is None: yLabel = 'Y'
+    
     x=xSeries
     y=ySeries
     line_modes = ['lines', 'markers']
@@ -56,8 +60,8 @@ def PlotSeriesPLY(xSeries=None,ySeries=None, names=None, title='Séries Temporai
         fig.add_trace(go.Scatter(x=x, y=y, name=name, mode=mode),row=1, col=1)
 
     fig.update_layout(width=w, height=h, title=title,template='plotly_white')
-    fig.update_yaxes(title_text='Amplitude', row=1, col=1,)
-    fig.update_xaxes(title_text='Tempo / Frequência', row=1, col=1,)
+    fig.update_yaxes(title_text=yLabel, row=1, col=1,)
+    fig.update_xaxes(title_text=xLabel, row=1, col=1,)
     fig.show()
 
 def PlotSeriesPLT(xSeries=None,ySeries=None, names=None, title='Séries Temporais',
@@ -883,7 +887,7 @@ def PlotDataframes(dataframes, cols_qtd=4,w=12,h=8):
 
     cmap = mpl.colormaps.get_cmap('tab20').resampled(len(dataframes))
     colors = (np.array([cmap(i) for i in range(1+len(dataframes))]))
-
+    names = dataframes[0].columns
     nc = cols_qtd  # Número de colunas
     nr = -(-dataframes[0].shape[1] // nc)  # Cálculo do número de linhas (ceil)
 
@@ -904,7 +908,7 @@ def PlotDataframes(dataframes, cols_qtd=4,w=12,h=8):
     for i, col in enumerate(dataframes[0].columns):
         ax = axes[i]
         for j,df in enumerate(dataframes):
-            ax.plot(df.index, df[col], label=f'{j+1}', color=colors[j])
+            ax.plot(df.index, df[col], label=names[i], color=colors[j])
         #ax.set_title(col, fontsize=10)
         ax.legend(fontsize=8,ncol=len(dataframes))
         ax.grid(True)
