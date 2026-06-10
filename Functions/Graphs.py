@@ -236,6 +236,69 @@ def PlotPredErrorPLY(rtlo, w=800, h=300):
     tol = 25
     # Criando o layout de 1 linha e 4 colunas
     fig = make_subplots(
+        rows=1, cols=2, 
+        shared_xaxes=True,
+        subplot_titles=('Y - Real x Prediction',  'Error Analysis'),
+        specs=[[{"secondary_y": False}, {"secondary_y": True}]]
+    )
+
+    # --- Subplot 1: Y Real x Pred (com Intervalos) ---
+    fig.add_trace(go.Scatter(x=t, y=rtlo.yR.T[0], name='Deg-R', line=dict(color='black')), row=1, col=1)
+    fig.add_trace(go.Scatter(x=t, y=rtlo.yP.T[0], name='Deg-P', line=dict(color='blue')), row=1, col=1)
+    # Intervalos (Dashed)
+   
+
+
+    
+    fig.add_trace(
+        go.Scatter(x=t, y=rtlo.εR_hist, name='RUL wMAPE', line=dict(color='black')),
+        row=1, col=2, 
+        secondary_y=False  # Fica FORA do go.Scatter
+    )
+
+    fig.add_trace(
+        go.Scatter(x=t, y=rtlo.εM_hist, name='Deg wMAPE', line=dict(color='blue')),
+        row=1, col=2, 
+        secondary_y=True   # Fica FORA do go.Scatter
+    )
+    # Atualizando Layout e Eixos
+    fig.update_layout(
+        width=w, height=h,
+        title_text=f"RTLO Model Performance Analysis",
+        template='plotly_white',
+        showlegend=True,
+        margin=dict(l=40, r=40, t=80, b=40)
+    )
+
+    fig.update_yaxes(
+        title_text="<b>RUL wMAPE</b>", 
+        title_font=dict(color="black"), 
+        tickfont=dict(color="black"), 
+        secondary_y=False,
+        row=1, col=2
+    )
+
+    fig.update_yaxes(
+        title_text="<b>RUL wMAPE</b>", 
+        title_font=dict(color="blue"), 
+        tickfont=dict(color="blue"), 
+        secondary_y=True,
+        row=1, col=2
+    )
+
+    # Labels dos eixos (opcional, já que os títulos ajudam)
+    fig.update_xaxes(title_text="Time / Index")
+    fig.update_yaxes(title_text="Amplitude", col=1)
+    fig.update_yaxes(title_text="Error", col=2)
+
+    fig.show()
+
+def PlotRULErrorPLY(rtlo, w=800, h=300):
+    # s: tamanho do vetor WAPE (caso comece depois do início)
+    t = rtlo.t
+    tol = 25
+    # Criando o layout de 1 linha e 4 colunas
+    fig = make_subplots(
         rows=1, cols=3, 
         shared_xaxes=True,
         subplot_titles=('Y - Real x Prediction', 'RUL - Real x Pred', 'Error Analysis'),

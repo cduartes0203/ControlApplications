@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 import pickle
-
+from scipy.signal import lfilter
 from scipy.stats import entropy
 from scipy.signal import hilbert
 import os
@@ -381,6 +381,33 @@ def exponential_moving_average(data, alpha=0.3):
     for i in range(1, len(data)):
         ema.append(alpha * data.iloc[i] + (1 - alpha) * ema[i-1])
     return pd.Series(ema, index=data.index)
+
+def exponential_moving_average_np(data, alpha=0.3):
+    """
+    Calcula a EMA de um np.array sem usar loops 'for'.
+    """
+    data = np.asarray(data)
+    n = len(data)
+    
+    # Cria os fatores de decaimento exponencial: (1 - alpha)^i
+    factors = (1 - alpha) ** np.arange(n)
+    
+    # Executa a soma ponderada usando convolução ou multiplicação matricial rápida
+    # Para séries temporais longas, a forma abaixo é matematicamente exata:
+    ema = np.zeros(n)
+    ema[0] = data[0]
+    
+    # Como queremos desempenho mantendo a simplicidade para o NumPy, 
+    # podemos usar o acumulador numérico numba ou a função linear abaixo:
+    weight = 1.0
+    current_ema = data[0]
+    ema[0] = current_ema
+    
+    # Se os arrays forem massivos, loops em Python puro travam. 
+    # Para manter 100% NumPy puro e ultra rápido, a melhor alternativa é:
+    # Usando truque de filtragem IIR (Infinite Impulse Response)
+    
+    return lfilter([alpha], [1, -(1 - alpha)], data, zi=[data[0] * (1 - alpha)])[0]
 
 def exponential_moving_average_df(df, alpha=0.3):
     ema_df = df.copy()
